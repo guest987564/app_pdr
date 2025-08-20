@@ -94,7 +94,11 @@ def write_workbook(edits: pd.DataFrame, sheet_name: str, xl: pd.ExcelFile) -> by
 
 
 def main() -> None:
-    st.set_page_config(page_title="Excel Editor App", layout="wide")
+    st.set_page_config(
+        page_title="Excel Editor App",
+        layout="wide",
+        initial_sidebar_state="expanded",
+    )
     st.title("📊 Internal Excel Editor")
 
     st.write(
@@ -108,7 +112,9 @@ def main() -> None:
 
     aggrid_available, AgGrid, GridOptionsBuilder, GridUpdateMode, DataReturnMode = try_import_aggrid()
 
-    uploaded_file = st.file_uploader("Choisir un fichier Excel", type=["xlsx"])
+    # -- Sidebar controls ----------------------------------------------------
+    st.sidebar.header("⚙️ Paramètres")
+    uploaded_file = st.sidebar.file_uploader("Choisir un fichier Excel", type=["xlsx"])
     if not uploaded_file:
         st.info("Aucun fichier sélectionné. Veuillez sélectionner un fichier `.xlsx`.  ")
         return
@@ -121,7 +127,7 @@ def main() -> None:
         return
 
     # Choose a sheet
-    sheet_name = st.selectbox("Sélectionner la feuille à éditer", options=sheets)
+    sheet_name = st.sidebar.selectbox("Sélectionner la feuille à éditer", options=sheets)
     if not sheet_name:
         return
 
@@ -131,6 +137,11 @@ def main() -> None:
     except Exception as exc:
         st.error(f"Impossible de lire la feuille '{sheet_name}': {exc}")
         return
+
+    # Show basic sheet metrics
+    col1, col2 = st.columns(2)
+    col1.metric("Lignes", len(df))
+    col2.metric("Colonnes", len(df.columns))
 
     # Display editable table using AgGrid if available
     st.subheader(f"Édition de la feuille : {sheet_name}")
