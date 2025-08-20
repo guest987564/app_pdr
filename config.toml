@@ -1,0 +1,10 @@
+[server]
+# Réglages adaptés à Streamlit Cloud.
+headless = true
+# Utilisez un mode de surveillance de fichiers basé sur l'interrogation pour
+# éviter les problèmes liés aux systèmes de fichiers en réseau.
+fileWatcherType = "poll"
+# Désactive l'avertissement XSRF dans les environnements où ce n'est pas
+# nécessaire (comme Streamlit Cloud) ; activez‑le en production si vous
+# exposez l'app sur internet.
+enableXsrfProtection = false
