@@ -100,17 +100,20 @@ def main() -> None:
     st.write(
         """
         Téléversez un fichier Excel (`.xlsx`), choisissez la feuille à modifier puis
-        éditez les données directement dans le tableau ci‑dessous. Lorsque vous
-        êtes satisfait, cliquez sur **Télécharger le classeur modifié** pour récupérer
-        votre fichier mis à jour.
+        éditez les données directement dans le tableau ci‑dessous.
         """
     )
 
     aggrid_available, AgGrid, GridOptionsBuilder, GridUpdateMode, DataReturnMode = try_import_aggrid()
 
-    uploaded_file = st.file_uploader("Choisir un fichier Excel", type=["xlsx"])
+    st.sidebar.title("📁 Options")
+    st.sidebar.write(
+        "1. Téléversez un fichier\n2. Choisissez la feuille\n3. Téléchargez le classeur"
+    )
+
+    uploaded_file = st.sidebar.file_uploader("Choisir un fichier Excel", type=["xlsx"])
     if not uploaded_file:
-        st.info("Aucun fichier sélectionné. Veuillez sélectionner un fichier `.xlsx`.  ")
+        st.info("Aucun fichier sélectionné. Veuillez sélectionner un fichier `.xlsx`.")
         return
 
     # Load the workbook
@@ -121,7 +124,7 @@ def main() -> None:
         return
 
     # Choose a sheet
-    sheet_name = st.selectbox("Sélectionner la feuille à éditer", options=sheets)
+    sheet_name = st.sidebar.selectbox("Sélectionner la feuille à éditer", options=sheets)
     if not sheet_name:
         return
 
@@ -132,6 +135,11 @@ def main() -> None:
         st.error(f"Impossible de lire la feuille '{sheet_name}': {exc}")
         return
 
+    # Display some quick metrics
+    col1, col2 = st.columns(2)
+    col1.metric("Lignes", df.shape[0])
+    col2.metric("Colonnes", df.shape[1])
+
     # Display editable table using AgGrid if available
     st.subheader(f"Édition de la feuille : {sheet_name}")
     if aggrid_available:
@@ -141,16 +149,15 @@ def main() -> None:
         st.caption("Module AgGrid non disponible ; utilisation de l'éditeur Streamlit intégré.")
         edited_df = build_data_editor_table(df)
 
-    # Provide download button
-    st.markdown("---")
-    if st.button("Télécharger le classeur modifié", type="primary"):
-        data_bytes = write_workbook(edited_df, sheet_name, xl)
-        st.download_button(
-            label="Cliquez ici pour télécharger",
-            data=data_bytes,
-            file_name=f"modifié_{uploaded_file.name}",
-            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        )
+    # Provide download button in the sidebar
+    st.sidebar.markdown("---")
+    data_bytes = write_workbook(edited_df, sheet_name, xl)
+    st.sidebar.download_button(
+        label="💾 Télécharger le classeur modifié",
+        data=data_bytes,
+        file_name=f"modifié_{uploaded_file.name}",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    )
 
 
 if __name__ == "__main__":
